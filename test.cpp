@@ -1,4 +1,3 @@
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "src/doctest.h"
@@ -28,7 +27,6 @@ class TestClass {
   time_t time = time_t();
 };
 
-// Чтобы не носить длинные типа
 using namespace lab618;
 
 TEST_CASE("Testing MM with Deleting elements on destruct") {
@@ -38,7 +36,12 @@ TEST_CASE("Testing MM with Deleting elements on destruct") {
   for (int i = 0; i < amount; ++i) {
     TestClass *obj = mm.newObject();
     CHECK(*obj == TestClass());
+    if (i % 2) {
+      CHECK(mm.deleteObject(obj) == true);
+    }
   }
+  TestClass* wrong_obj = new TestClass();
+  CHECK(mm.deleteObject(wrong_obj) == false);
   CHECK_NOTHROW(mm.clear());
 }
 
@@ -65,37 +68,37 @@ TEST_CASE("Testing MM without Deleting elements on destruct") {
 
 TEST_CASE("Testing MM without Deleting elements on destruct (not actually deleting elements)") {
   int size = 100;
-  CMemoryManager test_mm = CMemoryManager<TestClass>(size, false);
+  CMemoryManager mm = CMemoryManager<TestClass>(size, false);
   std::vector<TestClass*> pointers;
   int amount = 1000;
   for (int i = 0; i < amount; ++i) {
-    TestClass *obj = test_mm.newObject();
+    TestClass *obj = mm.newObject();
     CHECK(*obj == TestClass());
     pointers.push_back(obj);
   }
-  CHECK_THROWS(test_mm.clear());
+  CHECK_THROWS(mm.clear());
   for (auto& obj : pointers) {
-    CHECK(test_mm.deleteObject(obj) == true);
+    CHECK(mm.deleteObject(obj) == true);
   }
 }
 
 TEST_CASE("Testing clear") {
   int size = 100;
-  CMemoryManager test_mm = CMemoryManager<TestClass>(size, true);
+  CMemoryManager mm = CMemoryManager<TestClass>(size, true);
   std::vector<TestClass*> pointers;
   int amount = 1000;
   for (int i = 0; i < amount; ++i) {
-    TestClass *obj = test_mm.newObject();
+    TestClass *obj = mm.newObject();
     pointers.push_back(obj);
     CHECK(*obj == TestClass());
   }
   for (int i = 0; i < amount; ++i) {
     if (i % 2) {
-      CHECK(test_mm.deleteObject(pointers[i]) == true);
+      CHECK(mm.deleteObject(pointers[i]) == true);
     }
   }
-  test_mm.clear();
+  mm.clear();
   for (int i = 0; i < amount; ++i) {
-    CHECK(test_mm.deleteObject(pointers[i]) == false);
+    CHECK(mm.deleteObject(pointers[i]) == false);
   }
 }
